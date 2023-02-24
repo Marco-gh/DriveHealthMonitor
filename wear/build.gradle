@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace 'it.univaq.app.carapp'
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "it.univaq.app.carapp"
         minSdk 30
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -33,4 +33,7 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     implementation 'androidx.wear:wear:1.2.0'
     wearApp project(":wear")
+
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
 }
