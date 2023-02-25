@@ -13,4 +13,5 @@
     <string name="z_axis">z_axis</string>
     <string name="o2inblood">O2InBlood</string>
     <string name="Red_car">A red machine to signal whether activity is on going or not</string>
+    <string name="out_of_body">OUT OF BODY</string>
 </resources>

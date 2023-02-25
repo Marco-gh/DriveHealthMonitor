@@ -19,18 +19,31 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
+            android:contentDescription="@string/Red_car"
             android:src="@drawable/ic_baseline_directions_car"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:contentDescription="@string/Red_car" />
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/textView_outOfBody"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/out_of_body"
+            android:textColor="@android:color/holo_red_dark"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="invisible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imageView_car" />
 
         <TextView
             android:id="@+id/textViewBPM"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="34dp"
-            android:layout_marginTop="36dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="56dp"
             android:text="@string/textview"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -39,8 +52,8 @@
             android:id="@+id/textView_linear_acceleration_X"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="34dp"
-            android:layout_marginTop="6dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="12dp"
             android:text="@string/x_axis"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textViewBPM" />
@@ -50,7 +63,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="12dp"
             android:text="@string/y_axis"
             app:layout_constraintStart_toEndOf="@+id/textView_linear_acceleration_X"
             app:layout_constraintTop_toBottomOf="@+id/textViewBPM" />
@@ -60,7 +73,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="12dp"
             android:text="@string/z_axis"
             app:layout_constraintStart_toEndOf="@+id/textView_linear_acceleration_Y"
             app:layout_constraintTop_toBottomOf="@+id/textViewBPM" />
@@ -69,27 +82,28 @@
             android:id="@+id/textView_O2InBlood"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="34dp"
-            android:layout_marginTop="6dp"
-            android:text="@string/o2inblood"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="12dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView_linear_acceleration_X" />
 
         <Button
             android:id="@+id/button_start"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
+            android:layout_width="0dp"
+            android:layout_height="55dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="6dp"
             android:layout_marginBottom="32dp"
             android:text="@string/start"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/button_stop"
             app:layout_constraintStart_toStartOf="parent" />
 
         <Button
             android:id="@+id/button_stop"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="24dp"
+            android:layout_width="0dp"
+            android:layout_height="55dp"
+            android:layout_marginEnd="12dp"
             android:layout_marginBottom="32dp"
             android:text="@string/stop"
             app:layout_constraintBottom_toBottomOf="parent"

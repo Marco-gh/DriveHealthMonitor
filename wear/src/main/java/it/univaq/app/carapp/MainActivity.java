@@ -13,8 +13,12 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 
+import com.google.gson.Gson;
+
 import java.util.Arrays;
 
+import it.univaq.app.carapp.Model.Session;
+import it.univaq.app.carapp.Utility.FileUtility;
 import it.univaq.app.carapp.databinding.ActivityMainBinding;
 
 public class MainActivity extends Activity implements SensorEventListener {
@@ -33,6 +37,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     private Sensor SensorOffBody;
     private SensorManager mSensorManager;
     private int accuracyHeartRate;
+    private Session current_session;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,25 +55,37 @@ public class MainActivity extends Activity implements SensorEventListener {
         binding.buttonStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                isRunning = true;
                 binding.imageViewCar.setVisibility(View.VISIBLE);
+
+                isRunning = true;
                 binding.buttonStart.setEnabled(false);
                 binding.buttonStop.setEnabled(true);
                 if(mSensorManager!=null){
                     requestPermissions(new String[]{Manifest.permission.BODY_SENSORS},1);
                 }
                 setAllSensorTextViews("0");
+                current_session = new Session();
             }
         });
         binding.buttonStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                binding.textViewOutOfBody.setVisibility(View.INVISIBLE);
+
                 isRunning = false;
                 binding.buttonStart.setEnabled(true);
                 binding.buttonStop.setEnabled(false);
                 binding.imageViewCar.setVisibility(View.INVISIBLE);
                 mSensorManager.unregisterListener(MainActivity.this);
                 setAllSensorTextViews("0");
+
+                //if("NO CONNESSIONE COL TELEFONO"){
+                    //convertire sessione attuale in JSON
+                    Gson gson = new Gson();
+                    String json = gson.toJson(current_session);
+                    FileUtility.writeSessionFile(getApplicationContext(),current_session.getStringDate(),json.toString().getBytes());
+                    //scrivere questo json su file tramite la classe utility
+                //}
             }
         });
     }
@@ -103,31 +120,50 @@ public class MainActivity extends Activity implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
         if(isRunning && !offBody){
+            binding.textViewOutOfBody.setVisibility(View.INVISIBLE);
+
             if(event.sensor.getType()==Sensor.TYPE_HEART_RATE && accuracyHeartRate!=SensorManager.SENSOR_STATUS_UNRELIABLE &&
                     accuracyHeartRate!=SensorManager.SENSOR_STATUS_NO_CONTACT){
                 binding.textViewBPM.setText(String.valueOf(event.values[0]));
+
+                current_session.addBpm((int) event.values[0]);
             }
             else if(event.sensor.getType()==ACCELERATION_SENSOR){
-                binding.textViewLinearAccelerationX.setText(String.valueOf(event.values[0]));
-                binding.textViewLinearAccelerationY.setText(String.valueOf(event.values[1]));
-                binding.textViewLinearAccelerationZ.setText(String.valueOf(event.values[2]));
+                String x = String.valueOf(event.values[0]);
+                if(x.length()>3){
+                    x = x.substring(0,x.lastIndexOf(".")+3);
+                }
+                String y = String.valueOf(event.values[1]);
+                if(y.length()>3){
+                    y = y.substring(0,y.lastIndexOf(".")+3);
+                }
+                String z = String.valueOf(event.values[2]);
+                if(z.length()>3){
+                    z = z.substring(0,z.lastIndexOf(".")+3);
+                }
 
+                binding.textViewLinearAccelerationX.setText(x);
+                binding.textViewLinearAccelerationY.setText(y);
+                binding.textViewLinearAccelerationZ.setText(z);
+
+                current_session.addAcceleration(x, y, z);
                 //Log.d("accell",String.format("X:%s Y:%s Z:%s", event.values[0], event.values[1], event.values[2]));
+            }
+            else if(mSensorManager.getDefaultSensor(TYPE_lifeq_lel_spo2)!=null && event.sensor.getType() == TYPE_lifeq_lel_spo2){
+                Log.d("MY_APP","Blood O2: "+ Arrays.toString(event.values));
+
+                String percentual_o2 = String.valueOf(Math.max(event.values[0],event.values[1]));
+
+                current_session.addO2inBlood(Integer.parseInt(percentual_o2));
             }
             else if (event.sensor.getType()==Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT){
                 this.offBody = event.values[0] == 0.0;
             }
-            else if(event.sensor.getType() == TYPE_lifeq_lel_spo2){
-                Log.d("MY_APP","Blood O2: "+ Arrays.toString(event.values));
+        }
+        else if(isRunning && offBody){
+            binding.textViewOutOfBody.setVisibility(View.VISIBLE);
 
-                String percentual_o2 = String.valueOf(Math.max(event.values[0],event.values[1]));
-                if(!percentual_o2.equals("")){
-                    binding.textViewO2InBlood.setText(percentual_o2);
-                }
-            }
-            else if(offBody){
-                setAllSensorTextViews("-");
-            }
+            setAllSensorTextViews("-");
         }
     }
 
@@ -152,6 +188,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         mSensorManager.registerListener(this, SensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         mSensorManager.registerListener(this, SensorOffBody, SensorManager.SENSOR_DELAY_NORMAL);
     }
+
     public void registerSensorInBody(){
         SensorBPM = mSensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
         mSensorManager.registerListener(this, SensorBPM, SensorManager.SENSOR_DELAY_NORMAL);
