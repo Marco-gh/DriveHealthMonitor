@@ -13,9 +13,16 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.gms.tasks.Tasks;
+import com.google.android.gms.wearable.CapabilityClient;
+import com.google.android.gms.wearable.CapabilityInfo;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.Wearable;
 import com.google.gson.Gson;
 
 import java.util.Arrays;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import it.univaq.app.carapp.Model.Session;
 import it.univaq.app.carapp.Utility.FileUtility;
@@ -79,13 +86,26 @@ public class MainActivity extends Activity implements SensorEventListener {
                 mSensorManager.unregisterListener(MainActivity.this);
                 setAllSensorTextViews("0");
 
-                //if("NO CONNESSIONE COL TELEFONO"){
-                    //convertire sessione attuale in JSON
-                    Gson gson = new Gson();
-                    String json = gson.toJson(current_session);
-                    FileUtility.writeSessionFile(getApplicationContext(),current_session.getStringDate(),json.toString().getBytes());
-                    //scrivere questo json su file tramite la classe utility
-                //}
+                //if there isn't connection save data inside internal storage
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            setupManageSession();
+                            if(manageSessionNodeId==null){
+                                Gson gson = new Gson();
+                                String json = gson.toJson(current_session);
+                                FileUtility.writeSessionFile(getApplicationContext(),current_session.getStringDate(),json.toString().getBytes());
+                            }
+                            else{
+                                //Se ci sono dispositivi connessi con l'altra app installata
+                                //svuota la memoria inviando i file tramite DataClient
+                            }
+                        } catch (ExecutionException | InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
             }
         });
     }
@@ -197,4 +217,34 @@ public class MainActivity extends Activity implements SensorEventListener {
             mSensorManager.registerListener(this, sensorBloodOxygen, SensorManager.SENSOR_DELAY_NORMAL);
         }
     }
+
+    /////////////////////////////////////////TROVARE I NODI VICINI//////////////////////////////////
+    private static final String MANAGE_SESSION_CAPABILITY_NAME = "manage_session";
+    private String manageSessionNodeId = null;
+
+    private void setupManageSession() throws ExecutionException, InterruptedException {
+        CapabilityInfo capabilityInfo = Tasks.await(
+                Wearable.getCapabilityClient(getApplicationContext()).getCapability(
+                        MANAGE_SESSION_CAPABILITY_NAME, CapabilityClient.FILTER_REACHABLE));
+        // capabilityInfo has the reachable nodes with the transcription capability
+        updateTranscriptionCapability(capabilityInfo);
+    }
+
+    private void updateTranscriptionCapability(CapabilityInfo capabilityInfo) {
+        Set<Node> connectedNodes = capabilityInfo.getNodes();
+        manageSessionNodeId = pickBestNodeId(connectedNodes);
+    }
+
+    private String pickBestNodeId(Set<Node> nodes) {
+        String bestNodeId = null;
+        // Find a nearby node or pick one arbitrarily.
+        for (Node node : nodes) {
+            if (node.isNearby()) {
+                return node.getId();
+            }
+            bestNodeId = node.getId();
+        }
+        return bestNodeId;
+    }
+
 }
