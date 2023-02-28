@@ -10,13 +10,20 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.gms.wearable.CapabilityClient;
 import com.google.android.gms.wearable.CapabilityInfo;
+import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.google.gson.Gson;
 
@@ -35,10 +42,8 @@ public class MainActivity extends Activity implements SensorEventListener {
     private boolean isRunning = false;
     private static final int ACCELERATION_SENSOR = Sensor.TYPE_ACCELEROMETER;
 
-    //Da fare unregister dei sensori in caso ==true? Serve ancora isRunning?
-    private boolean offBody;
+    private boolean offBody = false;
 
-    //Aggiungere altri sensori LifeQ?
     private Sensor SensorBPM;
     private Sensor SensorAccelerometer;
     private Sensor SensorOffBody;
@@ -58,6 +63,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         binding.imageViewCar.setVisibility(View.INVISIBLE);
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         binding.buttonStop.setEnabled(false);
+        binding.textViewOutOfBody.setVisibility(View.INVISIBLE);
 
         binding.buttonStart.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,14 +83,13 @@ public class MainActivity extends Activity implements SensorEventListener {
         binding.buttonStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                binding.textViewOutOfBody.setVisibility(View.INVISIBLE);
 
                 isRunning = false;
                 binding.buttonStart.setEnabled(true);
                 binding.buttonStop.setEnabled(false);
                 binding.imageViewCar.setVisibility(View.INVISIBLE);
                 mSensorManager.unregisterListener(MainActivity.this);
-                setAllSensorTextViews("0");
+                setAllSensorTextViews("-");
 
                 //if there isn't connection save data inside internal storage
                 new Thread(new Runnable() {
@@ -98,8 +103,12 @@ public class MainActivity extends Activity implements SensorEventListener {
                                 FileUtility.writeSessionFile(getApplicationContext(),current_session.getStringDate(),json.toString().getBytes());
                             }
                             else{
-                                //Se ci sono dispositivi connessi con l'altra app installata
-                                //svuota la memoria inviando i file tramite DataClient
+                                //startservice()->per non passare attraverso l'activity aperta sul dispositivo mobile
+                                //per ogni file in memoria
+                                Gson gson = new Gson();
+                                String json = gson.toJson(current_session);
+                                sendData(json);
+                                //cancellare quel file in memoria
                             }
                         } catch (ExecutionException | InterruptedException e) {
                             e.printStackTrace();
@@ -138,10 +147,19 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     @Override
-    public void onSensorChanged(SensorEvent event) {
+        public void onSensorChanged(SensorEvent event) {
+/*
+        if(event.sensor.getType()==Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT){
+            this.offBody = event.values[0] == 0.0;
+            if(offBody){
+                binding.textViewOutOfBody.setVisibility(View.VISIBLE);
+            }
+            else{
+                binding.textViewOutOfBody.setVisibility(View.INVISIBLE);
+            }
+        }
+*/
         if(isRunning && !offBody){
-            binding.textViewOutOfBody.setVisibility(View.INVISIBLE);
-
             if(event.sensor.getType()==Sensor.TYPE_HEART_RATE && accuracyHeartRate!=SensorManager.SENSOR_STATUS_UNRELIABLE &&
                     accuracyHeartRate!=SensorManager.SENSOR_STATUS_NO_CONTACT){
                 binding.textViewBPM.setText(String.valueOf(event.values[0]));
@@ -172,17 +190,22 @@ public class MainActivity extends Activity implements SensorEventListener {
             else if(mSensorManager.getDefaultSensor(TYPE_lifeq_lel_spo2)!=null && event.sensor.getType() == TYPE_lifeq_lel_spo2){
                 Log.d("MY_APP","Blood O2: "+ Arrays.toString(event.values));
 
-                String percentual_o2 = String.valueOf(Math.max(event.values[0],event.values[1]));
+                Float percentual_o2 = null;
+                if (event.values[0] == 0.0 && event.values[1] != 0.0) {
+                    percentual_o2 = event.values[1];
+                }
+                else if (event.values[1] == 0.0 && event.values[0] != 0.0) {
+                    percentual_o2 = event.values[1];
+                }
+                else{
+                    percentual_o2 = Math.max(event.values[0],event.values[1]);
+                }
 
-                current_session.addO2inBlood(Integer.parseInt(percentual_o2));
-            }
-            else if (event.sensor.getType()==Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT){
-                this.offBody = event.values[0] == 0.0;
+                current_session.addO2inBlood(percentual_o2);
             }
         }
         else if(isRunning && offBody){
             binding.textViewOutOfBody.setVisibility(View.VISIBLE);
-
             setAllSensorTextViews("-");
         }
     }
@@ -218,7 +241,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
     }
 
-    /////////////////////////////////////////TROVARE I NODI VICINI//////////////////////////////////
+    //////////////////////////////TROVARE I NODI VICINI/////////////////////////////////////////////
     private static final String MANAGE_SESSION_CAPABILITY_NAME = "manage_session";
     private String manageSessionNodeId = null;
 
@@ -226,7 +249,6 @@ public class MainActivity extends Activity implements SensorEventListener {
         CapabilityInfo capabilityInfo = Tasks.await(
                 Wearable.getCapabilityClient(getApplicationContext()).getCapability(
                         MANAGE_SESSION_CAPABILITY_NAME, CapabilityClient.FILTER_REACHABLE));
-        // capabilityInfo has the reachable nodes with the transcription capability
         updateTranscriptionCapability(capabilityInfo);
     }
 
@@ -237,7 +259,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     private String pickBestNodeId(Set<Node> nodes) {
         String bestNodeId = null;
-        // Find a nearby node or pick one arbitrarily.
         for (Node node : nodes) {
             if (node.isNearby()) {
                 return node.getId();
@@ -247,4 +268,29 @@ public class MainActivity extends Activity implements SensorEventListener {
         return bestNodeId;
     }
 
+    /////////////////////////////////////INVIARE DATI///////////////////////////////////////////////
+    String datapath = "/data_path";
+
+    private void sendData(String message) {
+        PutDataMapRequest dataMap = PutDataMapRequest.create(datapath);
+        dataMap.getDataMap().putString("message", message);
+        PutDataRequest request = dataMap.asPutDataRequest();
+        request.setUrgent();
+
+        Task<DataItem> dataItemTask = Wearable.getDataClient(this).putDataItem(request);
+        dataItemTask
+                .addOnSuccessListener(new OnSuccessListener<DataItem>() {
+                    @Override
+                    public void onSuccess(DataItem dataItem) {
+                        System.out.println("LA SEDE FORSE: Sending message was successful: " + dataItem+", message: "+message);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        System.out.println("LA SEDE FORSE: Sending message failed: " + e);
+                    }
+                })
+        ;
+    }
 }

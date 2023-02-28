@@ -9,10 +9,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class Session {
+    //Togliere date, utile visto che il nome del file porta la data?
     private LocalDateTime date;
     private ArrayList<Integer> bpm;
     private ArrayList<ArrayList<String>> accelerometer;
-    private ArrayList<Integer> O2inBlood = new ArrayList<>();
+    private ArrayList<Float> O2inBlood = new ArrayList<>();
 
     public String getStringDate() {
         return date.toString();
@@ -37,7 +38,7 @@ public class Session {
         this.accelerometer.add(acceleration);
     }
 
-    public void addO2inBlood(int x){
+    public void addO2inBlood(Float x){
         this.O2inBlood.add(x);
     }
 }
