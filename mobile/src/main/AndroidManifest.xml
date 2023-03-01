@@ -29,7 +29,10 @@
                 android:value="" />
         </activity>
 
-        <service android:name=".DataListenerService"/>
+        <service android:name=".DataListenerService"
+            android:exported="true"
+            android:permission="TODO">
+        </service>
     </application>
 
 </manifest>

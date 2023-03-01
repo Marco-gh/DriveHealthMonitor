@@ -51,7 +51,7 @@ public class DataListenerService extends Service implements DataClient.OnDataCha
                     DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
                     String message = dataMapItem.getDataMap().getString("message");
                     Log.v(TAG, "Wear activity received message: " + message);
-                    // Display message in UI... or other
+                    //da memorizzare in un db in locale oppure mandarli on line, o entrambe le cose
                 } else {
                     Log.e(TAG, "Unrecognized path: " + path);
                 }

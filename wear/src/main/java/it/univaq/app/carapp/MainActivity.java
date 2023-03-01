@@ -10,7 +10,6 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 
 import androidx.annotation.NonNull;
 
@@ -27,6 +26,7 @@ import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -60,6 +60,8 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         setAllSensorTextViews("-");
 
+        //Mettere un avviso che segnala di attivare la connessione se si vogliono salvare i dati sul telefono
+
         binding.imageViewCar.setVisibility(View.INVISIBLE);
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         binding.buttonStop.setEnabled(false);
@@ -91,7 +93,6 @@ public class MainActivity extends Activity implements SensorEventListener {
                 mSensorManager.unregisterListener(MainActivity.this);
                 setAllSensorTextViews("-");
 
-                //if there isn't connection save data inside internal storage
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -104,11 +105,28 @@ public class MainActivity extends Activity implements SensorEventListener {
                             }
                             else{
                                 //startservice()->per non passare attraverso l'activity aperta sul dispositivo mobile
-                                //per ogni file in memoria
+
+                                //Salva il file della sessione corrente e delle sessioni in memoria
+                                //Si può anche pensare a un service quando l'app è attiva che svuota la memoria
+                                //periodicamente, non solo sullo stop dell'activity
                                 Gson gson = new Gson();
                                 String json = gson.toJson(current_session);
                                 sendData(json);
-                                //cancellare quel file in memoria
+                                System.out.println("LA SEDE FORSE VERIFICA JSON: "+json);
+                                ArrayList<String> nameFiles = FileUtility.getNameFiles(getApplicationContext());
+                                if(nameFiles != null && nameFiles.size()>0){
+                                    for (String s : nameFiles) {
+                                        if(FileUtility.readSessionFile(getApplicationContext(), s)!=null){
+                                            Session sessionToSend = FileUtility.readSessionFile(getApplicationContext(), s);
+                                            gson = new Gson();
+                                            json = gson.toJson(sessionToSend);
+                                            sendData(json);
+                                            FileUtility.deleteSessionFile(getApplicationContext(),s);
+                                            //Scrittura su file ogni volta in caso di perdita connessione
+                                            FileUtility.WriteMainSessionFile(getApplicationContext(),nameFiles);
+                                        }
+                                    }
+                                }
                             }
                         } catch (ExecutionException | InterruptedException e) {
                             e.printStackTrace();

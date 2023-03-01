@@ -1,33 +1,62 @@
 package it.univaq.app.carapp;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
-public class MainActivity extends AppCompatActivity {
-    Intent intent = null;
+import com.google.android.gms.wearable.DataClient;
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.Wearable;
+
+public class MainActivity extends AppCompatActivity implements DataClient.OnDataChangedListener {
+    String datapath = "/data_path";
+    String TAG = "Mobile MainActivity";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        intent = new Intent(getApplicationContext(), DataListenerService.class);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
-        startService(intent);
+        Wearable.getDataClient(this).addListener(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        Wearable.getDataClient(this).removeListener(this);
+    }
 
-        stopService(intent);
+    @Override
+    public void onDataChanged(@NonNull DataEventBuffer dataEventBuffer) {
+        Log.d(TAG, "onDataChanged: " + dataEventBuffer);
+        for (DataEvent event : dataEventBuffer) {
+            if (event.getType() == DataEvent.TYPE_CHANGED) {
+                String path = event.getDataItem().getUri().getPath();
+                if (datapath.equals(path)) {
+                    DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
+                    String message = dataMapItem.getDataMap().getString("message");
+                    //da memorizzare in un db in locale oppure mandarli on line, o entrambe le cose
+                    Log.v(TAG, "Wear activity received message: " + message);
+                } else {
+                    Log.e(TAG, "Unrecognized path: " + path);
+                }
+            } else if (event.getType() == DataEvent.TYPE_DELETED) {
+                Log.v(TAG, "Data deleted : " + event.getDataItem().toString());
+            } else {
+                Log.e(TAG, "Unknown data event Type = " + event.getType());
+            }
+        }
     }
 
 }
