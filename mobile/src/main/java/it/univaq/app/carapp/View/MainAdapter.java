@@ -1,0 +1,85 @@
+package it.univaq.app.carapp.View;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import it.univaq.app.carapp.Model.Session;
+import it.univaq.app.carapp.R;
+
+public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
+
+    private List<Session> data = new ArrayList<Session>();
+    private OnSessionAdapterListener listener;
+
+    public MainAdapter(List<Session> data) {
+        if(data != null) {
+            this.data = data;
+        }
+    }
+
+    @NonNull
+    @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.adapter_main, parent, false);
+        return new ViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        holder.textView.setText(this.data.get(position).getStringDate());
+    }
+
+    @Override
+    public int getItemCount() {
+        return this.data.size();
+    }
+
+    public void setOnSessionsAdapterListener(OnSessionAdapterListener listener){
+        this.listener = listener;
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
+        TextView textView;
+
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            textView = itemView.findViewById(R.id.textTitle);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(listener != null){
+                        listener.onOpenSession(data.get(getAdapterPosition()), getAdapterPosition());
+                    }
+                }
+            });
+
+            itemView.setOnLongClickListener(this);
+        }
+
+        @Override
+        public boolean onLongClick(View view) {
+            if(listener != null) {
+                listener.onRemoveSession(data.get(getAdapterPosition()), getAdapterPosition());
+            }
+            return true;
+        }
+    }
+
+    public interface OnSessionAdapterListener {
+
+        void onOpenSession(Session session, int position);
+
+        void onRemoveSession(Session session, int position);
+    }
+}

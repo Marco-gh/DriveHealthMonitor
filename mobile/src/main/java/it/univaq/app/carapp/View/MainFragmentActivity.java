@@ -1,9 +1,8 @@
-package it.univaq.app.carapp;
+package it.univaq.app.carapp.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -13,7 +12,9 @@ import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
 
-public class MainActivity extends AppCompatActivity implements DataClient.OnDataChangedListener {
+import it.univaq.app.carapp.R;
+
+public class MainFragmentActivity extends AppCompatActivity implements DataClient.OnDataChangedListener {
     String datapath = "/data_path";
     String TAG = "Mobile MainActivity";
 
@@ -21,8 +22,7 @@ public class MainActivity extends AppCompatActivity implements DataClient.OnData
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
+        setContentView(R.layout.activity_mainfragment);
     }
 
     @Override
