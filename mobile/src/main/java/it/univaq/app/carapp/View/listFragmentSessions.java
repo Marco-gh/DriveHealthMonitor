@@ -17,6 +17,8 @@ import java.util.List;
 
 import it.univaq.app.carapp.Model.Session;
 import it.univaq.app.carapp.R;
+import it.univaq.app.carapp.Utility.RoomDB.DB;
+import it.univaq.app.carapp.Utility.RoomDB.SessionDAO;
 
 public class listFragmentSessions extends Fragment {
     private List<Session> data = new ArrayList<>();
@@ -38,10 +40,12 @@ public class listFragmentSessions extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        Session session1 = new Session();
-        data.add(session1);
-        Session session2 = new Session();
-        data.add(session2);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                data = DB.getInstance(getContext()).getSessionDAO().findAll();
+            }
+        }).start();
 
         System.out.println("ARRIVA FIN QUI LA SEDE");
 

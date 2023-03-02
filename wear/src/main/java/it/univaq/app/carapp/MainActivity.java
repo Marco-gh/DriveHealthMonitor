@@ -165,7 +165,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     @Override
-        public void onSensorChanged(SensorEvent event) {
+    public void onSensorChanged(SensorEvent event) {
 /*
         if(event.sensor.getType()==Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT){
             this.offBody = event.values[0] == 0.0;
