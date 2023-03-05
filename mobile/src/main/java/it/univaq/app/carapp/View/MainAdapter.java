@@ -12,15 +12,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
-import it.univaq.app.carapp.Model.Session;
+import it.univaq.app.carapp.Model.Tracking;
 import it.univaq.app.carapp.R;
 
 public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
-    private List<Session> data = new ArrayList<Session>();
+    private List<Tracking> data = new ArrayList<Tracking>();
     private OnSessionAdapterListener listener;
 
-    public MainAdapter(List<Session> data) {
+    public MainAdapter(List<Tracking> data) {
         if(data != null) {
             this.data = data;
         }
@@ -78,8 +78,8 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
     public interface OnSessionAdapterListener {
 
-        void onOpenSession(Session session, int position);
+        void onOpenSession(Tracking session, int position);
 
-        void onRemoveSession(Session session, int position);
+        void onRemoveSession(Tracking session, int position);
     }
 }

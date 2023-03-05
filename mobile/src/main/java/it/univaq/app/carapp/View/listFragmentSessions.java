@@ -15,13 +15,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
-import it.univaq.app.carapp.Model.Session;
+import it.univaq.app.carapp.Model.Tracking;
 import it.univaq.app.carapp.R;
 import it.univaq.app.carapp.Utility.RoomDB.DB;
-import it.univaq.app.carapp.Utility.RoomDB.SessionDAO;
 
 public class listFragmentSessions extends Fragment {
-    private List<Session> data = new ArrayList<>();
+    private List<Tracking> data = new ArrayList<>();
     MainAdapter adapter;
     RecyclerView recyclerView;
 
@@ -52,14 +51,14 @@ public class listFragmentSessions extends Fragment {
         adapter = new MainAdapter(this.data);
         adapter.setOnSessionsAdapterListener(new MainAdapter.OnSessionAdapterListener() {
             @Override
-            public void onOpenSession(Session session, int position) {
+            public void onOpenSession(Tracking session, int position) {
                 //creare Bundle con dati, secondo argomento di:
                 Navigation.findNavController(view)
                         .navigate(R.id.action_listFragmentSessions_to_detailFragmentSessions);
             }
 
             @Override
-            public void onRemoveSession(Session session, int position) {
+            public void onRemoveSession(Tracking session, int position) {
                 //pannello di interazione per confermare o meno la cancellazione della sessione
                 // dalla lista e dal DB locale/DB on line
             }

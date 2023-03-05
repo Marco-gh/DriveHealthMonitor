@@ -7,13 +7,13 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
-import it.univaq.app.carapp.Model.Session;
+import it.univaq.app.carapp.Model.Tracking;
 
-@Database(entities = { Session.class }, version = 1)
+@Database(entities = { Tracking.class }, version = 1)
 @TypeConverters({Converters.class})
 public abstract class DB extends RoomDatabase {
 
-    public abstract SessionDAO getSessionDAO();
+    public abstract TrackingDAO getSessionDAO();
 
     private static volatile DB instance = null;
 

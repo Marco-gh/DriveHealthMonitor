@@ -13,16 +13,17 @@ import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
 import com.google.gson.Gson;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import it.univaq.app.carapp.Model.Session;
+import it.univaq.app.carapp.Model.Tracking;
 import it.univaq.app.carapp.R;
 import it.univaq.app.carapp.Utility.RoomDB.DB;
 
 public class MainFragmentActivity extends AppCompatActivity implements DataClient.OnDataChangedListener {
     String datapath = "/data_path";
-    String TAG = "Mobile MainActivity";
+    public final static String TAG = "Mobile MainActivity";
 
 
     @Override
@@ -46,7 +47,7 @@ public class MainFragmentActivity extends AppCompatActivity implements DataClien
     @Override
     public void onDataChanged(@NonNull DataEventBuffer dataEventBuffer) {
         Log.d(TAG, "onDataChanged: " + dataEventBuffer);
-        List<Session> sessionsToBeSaved = new ArrayList<>();
+        List<Tracking> sessionsToBeSaved = new ArrayList<>();
         for (DataEvent event : dataEventBuffer) {
             if (event.getType() == DataEvent.TYPE_CHANGED) {
                 String path = event.getDataItem().getUri().getPath();
@@ -57,8 +58,21 @@ public class MainFragmentActivity extends AppCompatActivity implements DataClien
                     Log.v(TAG, "Wear activity received message: " + message);
 
                     Gson gson = new Gson();
-                    Session session = gson.fromJson(message, Session.class);
-                    sessionsToBeSaved.add(session);
+                    Tracking tracking = gson.fromJson(message, Tracking.class);
+
+                    //Per evitare che sia null
+                    tracking.setDate(LocalDateTime.now());
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            DB.getInstance(getApplicationContext()).getSessionDAO().insert(tracking);
+                            Log.v(MainFragmentActivity.TAG, "DATABASE IN LOCALE---------------------------------------------------------------------------------");
+                            for(Tracking tracking1 : DB.getInstance(getApplicationContext()).getSessionDAO().findAll()){
+                                Log.v(MainFragmentActivity.TAG, "DB: "+tracking1.toString());
+                            }
+                        }
+                    }).start();
                 } else {
                     Log.e(TAG, "Unrecognized path: " + path);
                 }
@@ -68,16 +82,6 @@ public class MainFragmentActivity extends AppCompatActivity implements DataClien
                 Log.e(TAG, "Unknown data event Type = " + event.getType());
             }
         }
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for(Session session : sessionsToBeSaved){
-                    DB.getInstance(getApplicationContext()).getSessionDAO().insert(session);
-                }
-            }
-        }).start();
-
     }
 
 }

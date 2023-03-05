@@ -10,29 +10,28 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Objects;
 
-import it.univaq.app.carapp.Model.Session;
+import it.univaq.app.carapp.Model.Tracking;
 
 public class FileUtility {
-    public static String NAME_MAIN_FILE = "mainSessionFile";
+    public static String NAME_MAIN_FILE = "mainTrackingFile";
 
     /**
-     * Memorizza la sessione su un file e aggiorna il MainFile con tutti i nomi
+     * Memorizza il tracking su un file e aggiorna il MainFile con tutti i nomi
      */
-    public static void writeSessionFile(Context context, String filename, byte[] data) {
-        //Aggiorna il main file con i nomi
+    public static void writeTrackingFile(Context context, String filename, byte[] data) {
         File dir = new File(getDirectory(context));
-        File mainSessionFile = new File(dir, NAME_MAIN_FILE);
+        File mainTrackingFile = new File(dir, NAME_MAIN_FILE);
         try{
-            mainSessionFile.createNewFile();
+            mainTrackingFile.createNewFile();
 
-            FileInputStream fis = new FileInputStream(mainSessionFile);
-            byte[] buffer = new byte[(int) mainSessionFile.length()];
+            FileInputStream fis = new FileInputStream(mainTrackingFile);
+            byte[] buffer = new byte[(int) mainTrackingFile.length()];
             fis.read(buffer);
             String s = new String(buffer);
             fis.close();
             String toWrite = filename+"\n"+s;
 
-            FileOutputStream fos = new FileOutputStream(mainSessionFile);
+            FileOutputStream fos = new FileOutputStream(mainTrackingFile);
             fos.write(toWrite.getBytes());
 
             fos.flush();
@@ -41,7 +40,6 @@ public class FileUtility {
             e.printStackTrace();
         }
 
-        //Scrive il nuovo file in memoria
         File file = new File(dir, filename);
         if (file.exists()) file.delete();
         try {
@@ -56,14 +54,14 @@ public class FileUtility {
         }
     }
 
-    public static void WriteMainSessionFile(Context context, ArrayList<String> listOFSessions){
+    public static void WriteMainTrackingFile(Context context, ArrayList<String> listOFTracking){
         File dir = new File(getDirectory(context));
-        File mainSessionFile = new File(dir, NAME_MAIN_FILE);
+        File maintrackingFile = new File(dir, NAME_MAIN_FILE);
         try{
-            if(mainSessionFile.exists()) mainSessionFile.delete();
+            if(maintrackingFile.exists()) maintrackingFile.delete();
 
-            FileOutputStream fos = new FileOutputStream(mainSessionFile);
-            for (String s : listOFSessions) {
+            FileOutputStream fos = new FileOutputStream(maintrackingFile);
+            for (String s : listOFTracking) {
                 String toWrite = s+"\n";
                 fos.write(toWrite.getBytes());
                 fos.flush();
@@ -74,7 +72,7 @@ public class FileUtility {
         }
     }
 
-    public static Session readSessionFile(Context context, String filename) {
+    public static Tracking readTrackingFile(Context context, String filename) {
         File file = new File(filename);
         if(file.exists()) {
             try {
@@ -85,8 +83,8 @@ public class FileUtility {
 
                 String data = new String(buffer);
                 Gson gson = new Gson();
-                Session session = gson.fromJson(data, Session.class);
-                return session;
+                Tracking tracking = gson.fromJson(data, Tracking.class);
+                return tracking;
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -94,13 +92,13 @@ public class FileUtility {
         else if(!file.exists()){
             //se esite sul main file per un qualche errore rimuovilo da lì
             File dir = new File(getDirectory(context));
-            File mainSessionFile = new File(dir, NAME_MAIN_FILE);
+            File mainTrackingFile = new File(dir, NAME_MAIN_FILE);
             try {
-                if(mainSessionFile.exists()){
-                    FileInputStream fis = new FileInputStream(mainSessionFile);
-                    FileOutputStream fos = new FileOutputStream(mainSessionFile);
+                if(mainTrackingFile.exists()){
+                    FileInputStream fis = new FileInputStream(mainTrackingFile);
+                    FileOutputStream fos = new FileOutputStream(mainTrackingFile);
 
-                    byte[] buffer = new byte[(int) mainSessionFile.length()];
+                    byte[] buffer = new byte[(int) mainTrackingFile.length()];
                     fis.read(buffer);
                     String data = new String(buffer);
                     String[] listOfFilesArray = data.split("\n");
@@ -126,15 +124,15 @@ public class FileUtility {
 
     /**
      *
-     * @return A list with every session in memory
+     * @return A list with every tracking in memory
      */
     public static ArrayList<String> getNameFiles(Context context){
         File dir = new File(getDirectory(context));
-        File mainSessionFile = new File(dir, NAME_MAIN_FILE);
+        File mainTrackingFile = new File(dir, NAME_MAIN_FILE);
         try {
-            if(mainSessionFile.exists()){
-                FileInputStream fis = new FileInputStream(mainSessionFile);
-                byte[] buffer = new byte[(int) mainSessionFile.length()];
+            if(mainTrackingFile.exists()){
+                FileInputStream fis = new FileInputStream(mainTrackingFile);
+                byte[] buffer = new byte[(int) mainTrackingFile.length()];
                 fis.read(buffer);
                 String data = new String(buffer);
                 String[] listOfFilesArray = data.split("\n");
@@ -150,7 +148,7 @@ public class FileUtility {
         return null;
     }
 
-    public static void deleteSessionFile(Context context, String filename) {
+    public static void deleteTrackingFile(Context context, String filename) {
         File dir = new File(getDirectory(context));
         File file = new File(dir, filename);
         if(file.exists()) file.delete();
