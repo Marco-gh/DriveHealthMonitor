@@ -27,6 +27,7 @@ import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.google.gson.GsonBuilder;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
@@ -34,7 +35,6 @@ import java.util.concurrent.ExecutionException;
 
 import it.univaq.app.carapp.Model.Tracking;
 import it.univaq.app.carapp.Utility.FileUtility;
-import it.univaq.app.carapp.Utility.LocalDataTimeAdapter;
 import it.univaq.app.carapp.Utility.LocalDateTimeDeserializer;
 import it.univaq.app.carapp.Utility.LocalDateTimeSerializer;
 import it.univaq.app.carapp.databinding.ActivityMainBinding;
@@ -45,6 +45,8 @@ public class MainActivity extends Activity implements SensorEventListener {
     private static final int TYPE_lifeq_lel_spo2 = 65561;
     private boolean isRunning = false;
     private static final int ACCELERATION_SENSOR = Sensor.TYPE_ACCELEROMETER;
+    private static final String MANAGE_TRACKINGS_PATH = "/manage_trackings";
+    public final static String TAG = "Wear MainActivity";
 
     private boolean offBody = false;
     private boolean thereIsO2Sensor = false;
@@ -59,8 +61,6 @@ public class MainActivity extends Activity implements SensorEventListener {
     private int mInterval = 3000;
     private Handler mHandler;
 
-    public final static String TAG = "Wear MainActivity";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,8 +72,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         current_tracking = new Tracking(getApplicationContext());
         mHandler = new Handler(getMainLooper());
-
-        //Mettere un avviso che segnala di attivare la connessione se si vogliono salvare i dati sul telefono
 
         binding.imageViewCar.setVisibility(View.INVISIBLE);
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -92,14 +90,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                     requestPermissions(new String[]{Manifest.permission.BODY_SENSORS}, 1);
                 }
                 setAllSensorTextViews("0");
-                //AVVIO DI UNA ACTIVITY/SERVICE SUL TELEFONO
-                //Intent intent = getPackageManager().getLaunchIntentForPackage("com.package.name");
-                //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                //startActivity(intent);
 
-
-                //INSERIRE IN UN THREAD UNA FUNZIONE CHE SI AVVIA PERIODICAMENTE MANDA IL TRAKING SE POSSIBILE
-                //E RIAZZERA CURRENT_TRACKING
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -188,7 +179,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 }
                 //Log.d("accell",String.format("X:%s Y:%s Z:%s", event.values[0], event.values[1], event.values[2]));
             } else if (mSensorManager.getDefaultSensor(TYPE_lifeq_lel_spo2) != null && event.sensor.getType() == TYPE_lifeq_lel_spo2) {
-                Log.d("MY_APP", "Blood O2: " + Arrays.toString(event.values));
+                Log.d(TAG, "Blood O2: " + Arrays.toString(event.values));
 
                 Float percentual_o2 = null;
                 if (event.values[0] == 0.0 && event.values[1] != 0.0) {
@@ -210,7 +201,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         if (sensor.getType() == Sensor.TYPE_HEART_RATE) {
             this.accuracyHeartRate = accuracy;
-            Log.d("MY_APP", "Accuracy BPM: " + accuracy);
+            Log.d(TAG, "Accuracy BPM: " + accuracy);
         }
     }
 
@@ -266,10 +257,8 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     /////////////////////////////////////INVIARE DATI///////////////////////////////////////////////
-    String datapath = "/data_path";
-
     private void sendData(String message) {
-        PutDataMapRequest dataMap = PutDataMapRequest.create(datapath);
+        PutDataMapRequest dataMap = PutDataMapRequest.create(MANAGE_TRACKINGS_PATH);
         dataMap.getDataMap().putString("message", message);
         PutDataRequest request = dataMap.asPutDataRequest();
         request.setUrgent();
@@ -311,7 +300,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                                 String json = gson.toJson(current_tracking);
                                 */
                                 GsonBuilder gsonBuilder = new GsonBuilder();
-                                gsonBuilder.registerTypeAdapter(LocalDataTimeAdapter.class, new LocalDataTimeAdapter());
+                                //gsonBuilder.registerTypeAdapter(LocalDataTimeAdapter.class, new LocalDataTimeAdapter());
                                 gsonBuilder.registerTypeAdapter(LocalDateTimeSerializer.class, new LocalDateTimeSerializer());
                                 gsonBuilder.registerTypeAdapter(LocalDateTimeDeserializer.class, new LocalDateTimeDeserializer());
                                 String json = gsonBuilder.create().toJson(current_tracking);

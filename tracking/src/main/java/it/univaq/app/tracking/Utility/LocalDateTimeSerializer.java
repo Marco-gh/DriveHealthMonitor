@@ -8,7 +8,7 @@ import com.google.gson.JsonSerializer;
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 
-import it.univaq.app.carapp.Model.Tracking;
+import it.univaq.app.tracking.Tracking;
 
 public class LocalDateTimeSerializer implements JsonSerializer<LocalDateTime> {
     /**

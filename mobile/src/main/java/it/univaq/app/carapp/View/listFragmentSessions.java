@@ -1,6 +1,11 @@
 package it.univaq.app.carapp.View;
 
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,15 +23,28 @@ import java.util.List;
 import it.univaq.app.carapp.Model.Tracking;
 import it.univaq.app.carapp.R;
 import it.univaq.app.carapp.Utility.RoomDB.DB;
+import it.univaq.app.carapp.Utility.Volley.RequestVolley;
 
 public class listFragmentSessions extends Fragment {
     private List<Tracking> data = new ArrayList<>();
     MainAdapter adapter;
     RecyclerView recyclerView;
+    ConnectivityManager connectivityManager;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        NetworkRequest networkRequest = new NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+                .build();
+
+        connectivityManager = (ConnectivityManager) requireContext().getSystemService(ConnectivityManager.class);
+
+        connectivityManager.requestNetwork(networkRequest, networkCallback);
+
     }
 
     @Nullable
@@ -45,8 +63,6 @@ public class listFragmentSessions extends Fragment {
                 data = DB.getInstance(getContext()).getSessionDAO().findAll();
             }
         }).start();
-
-        System.out.println("ARRIVA FIN QUI LA SEDE");
 
         adapter = new MainAdapter(this.data);
         adapter.setOnSessionsAdapterListener(new MainAdapter.OnSessionAdapterListener() {
@@ -68,4 +84,31 @@ public class listFragmentSessions extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
     }
+
+    private ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
+        @Override
+        public void onAvailable(@NonNull Network network) {
+            super.onAvailable(network);
+
+            //Se c'è connessione richiedi i dati al server tramite get
+            RequestVolley.getInstance(getContext()).doGetRequest("http://localhost/carapp.php?la_sede=forse",
+                new RequestVolley.OnCompleteCallback() {
+                    @Override
+                    public void onCompleted(String response) {
+                        //Log.v(StorageService.TAG, "Response from web: "+response);
+                    }
+                });
+        }
+
+        @Override
+        public void onLost(@NonNull Network network) {
+            super.onLost(network);
+        }
+
+        @Override
+        public void onCapabilitiesChanged(@NonNull Network network, @NonNull NetworkCapabilities networkCapabilities) {
+            super.onCapabilitiesChanged(network, networkCapabilities);
+            final boolean unmetered = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED);
+        }
+    };
 }

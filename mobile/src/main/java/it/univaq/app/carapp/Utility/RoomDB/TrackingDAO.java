@@ -19,6 +19,6 @@ public abstract class TrackingDAO {
     @Update
     public abstract void update(Tracking session);
 
-    @Query("SELECT * FROM Tracking ORDER BY deviceID DESC")
+    @Query("SELECT * FROM Tracking")
     public abstract List<Tracking> findAll();
 }
