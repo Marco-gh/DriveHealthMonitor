@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/listFragmentSessions"
-        android:name="it.univaq.app.carapp.View.listFragmentSessions"
+        android:name="it.univaq.app.carapp.View.ListFragmentSessions"
         android:label="listFragmentSessions" >
         <action
             android:id="@+id/action_listFragmentSessions_to_detailFragmentSessions"
@@ -14,6 +14,6 @@
     </fragment>
     <fragment
         android:id="@+id/detailFragmentSessions"
-        android:name="it.univaq.app.carapp.View.detailFragmentSessions"
+        android:name="it.univaq.app.carapp.View.DetailFragmentSessions"
         android:label="detailFragmentSessions" />
 </navigation>

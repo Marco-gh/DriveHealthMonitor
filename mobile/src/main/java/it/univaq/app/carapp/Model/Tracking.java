@@ -22,12 +22,10 @@ public class Tracking {
     @Ignore
     final static DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
 
-    @PrimaryKey(autoGenerate = true)
-    private int trackingID;
     private String deviceID;
-    @Nullable
-    @TypeConverters
-    private LocalDateTime date;
+    @NonNull
+    @PrimaryKey
+    private String date;
     private Float bpm;
     @TypeConverters
     private Float[] accelerometer;
@@ -38,7 +36,7 @@ public class Tracking {
     public Tracking(Context context) {
         this.deviceID = Secure.getString(context.getContentResolver(),
                 Secure.ANDROID_ID);
-        this.date = LocalDateTime.now();
+        this.date = null;
         this.bpm = null;
         this.accelerometer = null;
         this.O2inBlood = null;
@@ -46,33 +44,13 @@ public class Tracking {
 
     @Override
     public String toString() {
-        String datestr = "";
-        if(date!=null){
-            datestr = date.format(ISO_FORMATTER);
-        }
         return "Tracking{" +
                 "deviceID='" + deviceID + '\'' +
-                ", date=" + datestr +
+                ", date=" + date +
                 ", bpm=" + bpm +
                 ", accelerometer=" + Arrays.toString(accelerometer) +
                 ", O2inBlood=" + O2inBlood +
                 '}';
-    }
-
-    public boolean hasValues(boolean thereIsO2Sensor){
-        if(deviceID!=null && bpm!=null && accelerometer!=null){
-            if(thereIsO2Sensor && O2inBlood!=null){
-                return true;
-            }
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
-
-    public String getStringDate() {
-        return date.format(ISO_FORMATTER);
     }
 
     public String getDeviceID() {
@@ -83,11 +61,11 @@ public class Tracking {
         this.deviceID = deviceID;
     }
 
-    public LocalDateTime getDate() {
+    public String getDate() {
         return date;
     }
 
-    public void setDate(LocalDateTime date) {
+    public void setDate(String date) {
         this.date = date;
     }
 
@@ -113,13 +91,5 @@ public class Tracking {
 
     public void setO2inBlood(Float o2inBlood) {
         O2inBlood = o2inBlood;
-    }
-
-    public int getTrackingID() {
-        return trackingID;
-    }
-
-    public void setTrackingID(int trackingID) {
-        this.trackingID = trackingID;
     }
 }

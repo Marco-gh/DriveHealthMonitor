@@ -5,6 +5,7 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.os.Bundle;
+import android.system.ErrnoException;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,19 +18,28 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import it.univaq.app.carapp.Model.Tracking;
 import it.univaq.app.carapp.R;
+import it.univaq.app.carapp.Service.DataLayerListenerService;
 import it.univaq.app.carapp.Utility.RoomDB.DB;
 import it.univaq.app.carapp.Utility.Volley.RequestVolley;
 
-public class listFragmentSessions extends Fragment {
+public class ListFragmentSessions extends Fragment {
     private List<Tracking> data = new ArrayList<>();
-    MainAdapter adapter;
-    RecyclerView recyclerView;
-    ConnectivityManager connectivityManager;
+    private MainAdapter adapter;
+    private RecyclerView recyclerView;
+    private ConnectivityManager connectivityManager;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -91,11 +101,25 @@ public class listFragmentSessions extends Fragment {
             super.onAvailable(network);
 
             //Se c'è connessione richiedi i dati al server tramite get
-            RequestVolley.getInstance(getContext()).doGetRequest("http://localhost/carapp.php?la_sede=forse",
+            String Url = "http://"+RequestVolley.ID_HOST_CARAPP+"/carapp.php?action=query";
+            RequestVolley.getInstance(getContext()).doGetRequest(Url,
                 new RequestVolley.OnCompleteCallback() {
                     @Override
                     public void onCompleted(String response) {
-                        //Log.v(StorageService.TAG, "Response from web: "+response);
+                        try{
+                            if(response != null){
+                                Gson gson = new Gson();
+                                JSONArray jsonArray = new JSONArray(response);
+                                for (int i = 0; i < jsonArray.length(); i++)
+                                {
+                                    JSONObject jsonObj = jsonArray.getJSONObject(i);
+                                    //data.add(gson.fromJson(String.valueOf(jsonObj),Tracking.class));
+                                    Log.v(DataLayerListenerService.TAG, "JsonOBJ FROM QUERY: "+response);
+                                }
+                            }
+                        }catch (JSONException e){
+                            e.printStackTrace();
+                        }
                     }
                 });
         }

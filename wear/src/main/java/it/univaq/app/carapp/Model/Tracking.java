@@ -11,7 +11,7 @@ import android.provider.Settings.Secure;
 public class Tracking {
     public final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
     private String deviceID;
-    private LocalDateTime date;
+    private String date;
     private Float bpm;
     private Float[] accelerometer;
     private Float O2inBlood;
@@ -19,7 +19,7 @@ public class Tracking {
     public Tracking(Context context) {
         this.deviceID = Secure.getString(context.getContentResolver(),
                 Secure.ANDROID_ID);
-        this.date = LocalDateTime.now();
+        this.date = LocalDateTime.now().toString();
         this.bpm = null;
         this.accelerometer = null;
         this.O2inBlood = null;
@@ -51,10 +51,6 @@ public class Tracking {
         }
     }
 
-    public String getStringDate() {
-        return date.format(DATE_TIME_FORMATTER);
-    }
-
     public String getDeviceID() {
         return deviceID;
     }
@@ -63,11 +59,11 @@ public class Tracking {
         this.deviceID = deviceID;
     }
 
-    public LocalDateTime getDate() {
+    public String getDate() {
         return date;
     }
 
-    public void setDate(LocalDateTime date) {
+    public void setDate(String date) {
         this.date = date;
     }
 

@@ -15,4 +15,3 @@ dependencyResolutionManagement {
 rootProject.name = "CarApp"
 include ':mobile'
 include ':wear'
-include ':tracking'
