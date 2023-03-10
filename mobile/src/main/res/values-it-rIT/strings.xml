@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CarApp</string>
+    <string name="attention">Attenzione</string>
+    <string name="communication_problems">Non è stato possibile ricevere i dati, server spento o irraggiungibile</string>
+    <string name="connection_lost">Connessione persa</string>
+</resources>

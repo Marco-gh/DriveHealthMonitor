@@ -17,10 +17,10 @@ import it.univaq.app.carapp.R;
 
 public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
-    private List<Tracking> data = new ArrayList<Tracking>();
+    private List<String> data = new ArrayList<>();
     private OnSessionAdapterListener listener;
 
-    public MainAdapter(List<Tracking> data) {
+    public MainAdapter(List<String> data) {
         if(data != null) {
             this.data = data;
         }
@@ -36,7 +36,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.textView.setText(this.data.get(position).getDate());
+        holder.textView.setText(this.data.get(position));
     }
 
     @Override
@@ -48,7 +48,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         this.listener = listener;
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
+    public class ViewHolder extends RecyclerView.ViewHolder {
         TextView textView;
 
         public ViewHolder(@NonNull View itemView) {
@@ -63,23 +63,10 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
                     }
                 }
             });
-
-            itemView.setOnLongClickListener(this);
-        }
-
-        @Override
-        public boolean onLongClick(View view) {
-            if(listener != null) {
-                listener.onRemoveSession(data.get(getAdapterPosition()), getAdapterPosition());
-            }
-            return true;
         }
     }
 
     public interface OnSessionAdapterListener {
-
-        void onOpenSession(Tracking session, int position);
-
-        void onRemoveSession(Tracking session, int position);
+        void onOpenSession(String string, int position);
     }
 }

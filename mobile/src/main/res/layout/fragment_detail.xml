@@ -1,16 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
 
     <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
+        android:id="@+id/textViewBPM"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Seconda schermata"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:text="BPM"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textViewMaxValueBpm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="MAX"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/textViewMinValueBpm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="MIN"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/textViewAverageValueBpm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="AVERAGE"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/textViewO2InBlood"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="O2 in blood"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textViewMaxValueO2InBlood"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="MAX"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/textViewMinValueO2InBlood"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="MIN"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/textViewAverageValueO2InBlood"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="AVERAGE"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/textViewAccelerometer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Acceleration"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textViewMaxValueAccelerations"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="MAX"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/textViewMinValueAccelerations"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="MIN"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/textViewAverageValueAccelerations"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="AVERAGE"
+        android:textSize="20sp" />
+
+</LinearLayout>

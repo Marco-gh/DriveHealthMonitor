@@ -1,15 +1,16 @@
-package it.univaq.app.carapp.View;
+package it.univaq.app.carapp.View.Fragment;
 
+import android.app.AlertDialog;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.os.Bundle;
-import android.system.ErrnoException;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,28 +19,24 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import it.univaq.app.carapp.Model.Tracking;
 import it.univaq.app.carapp.R;
 import it.univaq.app.carapp.Service.DataLayerListenerService;
-import it.univaq.app.carapp.Utility.RoomDB.DB;
 import it.univaq.app.carapp.Utility.Volley.RequestVolley;
+import it.univaq.app.carapp.View.MainAdapter;
 
-public class ListFragmentSessions extends Fragment {
-    private List<Tracking> data = new ArrayList<>();
+public class ListFragment extends Fragment {
+    private List<String> data = new ArrayList<>();
     private MainAdapter adapter;
     private RecyclerView recyclerView;
     private ConnectivityManager connectivityManager;
+
+    public static final String KEY_EXTRA_DATA = "extra_data";
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,26 +64,14 @@ public class ListFragmentSessions extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                data = DB.getInstance(getContext()).getSessionDAO().findAll();
-            }
-        }).start();
-
         adapter = new MainAdapter(this.data);
         adapter.setOnSessionsAdapterListener(new MainAdapter.OnSessionAdapterListener() {
             @Override
-            public void onOpenSession(Tracking session, int position) {
-                //creare Bundle con dati, secondo argomento di:
+            public void onOpenSession(String string, int position) {
+                Bundle bundle = new Bundle();
+                bundle.putString(ListFragment.KEY_EXTRA_DATA, data.get(position));
                 Navigation.findNavController(view)
-                        .navigate(R.id.action_listFragmentSessions_to_detailFragmentSessions);
-            }
-
-            @Override
-            public void onRemoveSession(Tracking session, int position) {
-                //pannello di interazione per confermare o meno la cancellazione della sessione
-                // dalla lista e dal DB locale/DB on line
+                        .navigate(R.id.action_listFragmentSessions_to_detailFragmentSessions, bundle);
             }
         });
 
@@ -100,25 +85,31 @@ public class ListFragmentSessions extends Fragment {
         public void onAvailable(@NonNull Network network) {
             super.onAvailable(network);
 
-            //Se c'è connessione richiedi i dati al server tramite get
-            String Url = "http://"+RequestVolley.ID_HOST_CARAPP+"/carapp.php?action=query";
+            String Url = "http://"+RequestVolley.ID_HOST_CARAPP+"/carapp.php?action=query&days=true";
             RequestVolley.getInstance(getContext()).doGetRequest(Url,
                 new RequestVolley.OnCompleteCallback() {
                     @Override
                     public void onCompleted(String response) {
-                        try{
-                            if(response != null){
-                                Gson gson = new Gson();
-                                JSONArray jsonArray = new JSONArray(response);
-                                for (int i = 0; i < jsonArray.length(); i++)
-                                {
-                                    JSONObject jsonObj = jsonArray.getJSONObject(i);
-                                    //data.add(gson.fromJson(String.valueOf(jsonObj),Tracking.class));
-                                    Log.v(DataLayerListenerService.TAG, "JsonOBJ FROM QUERY: "+response);
+                        if(response!=null){
+                            //Log.v(DataLayerListenerService.TAG, "Data from web "+response);
+                            try{
+                                JSONObject jsonObj = new JSONObject(response);
+                                for (int i = 0; i < jsonObj.names().length(); i++){
+                                    data.add(jsonObj.get(jsonObj.names().getString(i)).toString());
                                 }
+                                adapter.notifyDataSetChanged();
+                            }catch (JSONException e){
+                                e.printStackTrace();
                             }
-                        }catch (JSONException e){
-                            e.printStackTrace();
+                        }
+                        else{
+                            Log.v(DataLayerListenerService.TAG, "Dati null ");
+
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                            builder.setMessage(R.string.communication_problems)
+                                    .setTitle(R.string.attention).setPositiveButton("OK",null);
+                            AlertDialog dialog = builder.create();
+                            dialog.show();
                         }
                     }
                 });
@@ -127,6 +118,8 @@ public class ListFragmentSessions extends Fragment {
         @Override
         public void onLost(@NonNull Network network) {
             super.onLost(network);
+
+            Toast.makeText(getActivity(), R.string.connection_lost, Toast.LENGTH_LONG).show();
         }
 
         @Override
@@ -135,4 +128,5 @@ public class ListFragmentSessions extends Fragment {
             final boolean unmetered = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED);
         }
     };
+
 }

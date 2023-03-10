@@ -32,7 +32,7 @@ public class FileUtility {
         }
     }
 
-    public static ArrayList<String> readTrackings(Context context){
+    public static String[] readTrackings(Context context){
         File dir = new File(getDirectory(context));
         File file = new File(dir, MAIN_FILE_TRACKINGS);
         try {
@@ -41,16 +41,9 @@ public class FileUtility {
                 byte[] buffer = new byte[(int) file.length()];
                 fis.read(buffer);
                 String data = new String(buffer);
-
-                String[] array = data.split("\n");
-                ArrayList<String> arrayList = new ArrayList<>();
-                for(String s : array){
-                    arrayList.add(s);
-                }
-
                 file.delete();
                 fis.close();
-                return arrayList;
+                return data.split("\n");
             }
         } catch (Exception e) {
             e.printStackTrace();

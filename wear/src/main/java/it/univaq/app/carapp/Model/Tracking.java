@@ -9,7 +9,6 @@ import android.content.Context;
 import android.provider.Settings.Secure;
 
 public class Tracking {
-    public final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
     private String deviceID;
     private String date;
     private Float bpm;

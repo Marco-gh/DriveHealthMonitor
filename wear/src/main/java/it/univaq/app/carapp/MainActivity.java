@@ -60,11 +60,9 @@ public class MainActivity extends Activity implements SensorEventListener {
     private ArrayList<Float> samplings_accelerometerY = new ArrayList<>();
     private ArrayList<Float> samplings_accelerometerZ = new ArrayList<>();
 
-    private int mIntervalSession = 10000;
-    private int number_of_samplings_start_session = 10;
+    private final int mIntervalSession = 5000;
+    private final int number_of_samplings_start_session = 3;
     private Handler mHandler;
-
-    private ArrayList<String> jsonArrayListFromFile = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +80,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         binding.buttonStop.setEnabled(false);
         binding.textViewOutOfBody.setVisibility(View.INVISIBLE);
+
 
         binding.buttonStart.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -160,10 +159,10 @@ public class MainActivity extends Activity implements SensorEventListener {
         if (event.sensor.getType() == Sensor.TYPE_HEART_RATE && accuracyHeartRate != SensorManager.SENSOR_STATUS_UNRELIABLE &&
                 accuracyHeartRate != SensorManager.SENSOR_STATUS_NO_CONTACT) {
 
-            if (samplings_bpm.size()< number_of_samplings_start_session) {
+            if (samplings_bpm.size() < number_of_samplings_start_session) {
                 samplings_bpm.add(event.values[0]);
             }
-            if(samplings_bpm.size()== number_of_samplings_start_session){
+            if(samplings_bpm.size() == number_of_samplings_start_session){
                 Float totalBPM = 0.0f;
                 for(Float f : samplings_bpm){
                     totalBPM += f;
@@ -172,8 +171,10 @@ public class MainActivity extends Activity implements SensorEventListener {
                 current_tracking.setBpm(averageBPM);
                 mSensorManager.unregisterListener(this, SensorBPM);
 
-                binding.textViewBPM.setText(String.valueOf(event.values[0]));
+                binding.textViewBPM.setText(String.format("%s",current_tracking.getBpm()));
             }
+            Log.d(TAG, "add this event: "+event.values[0]);
+
         }
         else if (event.sensor.getType() == ACCELERATION_SENSOR) {
             Float x = event.values[0];
@@ -211,13 +212,12 @@ public class MainActivity extends Activity implements SensorEventListener {
                 current_tracking.setAccelerometer(new Float[]{averageX, averageY, averageZ});
                 mSensorManager.unregisterListener(this, SensorAccelerometer);
 
-                binding.textViewLinearAccelerationX.setText(String.valueOf(x));
-                binding.textViewLinearAccelerationY.setText(String.valueOf(y));
-                binding.textViewLinearAccelerationZ.setText(String.valueOf(z));
+                binding.textViewLinearAccelerationX.setText(String.format("%s",current_tracking.getAccelerometer()[0]));
+                binding.textViewLinearAccelerationY.setText(String.format("%s",current_tracking.getAccelerometer()[1]));
+                binding.textViewLinearAccelerationZ.setText(String.format("%s",current_tracking.getAccelerometer()[2]));
             }
         }
         else if (mSensorManager.getDefaultSensor(TYPE_lifeq_lel_spo2) != null && event.sensor.getType() == TYPE_lifeq_lel_spo2) {
-            Log.d(TAG, "Blood O2: " + Arrays.toString(event.values));
 
             Float percentual_o2 = null;
             if (event.values[0] == 0.0 && event.values[1] != 0.0) {
@@ -243,10 +243,9 @@ public class MainActivity extends Activity implements SensorEventListener {
                 current_tracking.setO2inBlood(averageO2);
                 mSensorManager.unregisterListener(this, sensorBloodOxygen);
 
-                binding.textViewO2InBlood.setText(percentual_o2.toString());
+                binding.textViewO2InBlood.setText(String.format("%s", current_tracking.getO2inBlood()));
             }
         }
-
     }
 
     @Override
@@ -279,6 +278,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             sensorBloodOxygen = mSensorManager.getDefaultSensor(TYPE_lifeq_lel_spo2);
             mSensorManager.registerListener(this, sensorBloodOxygen, SensorManager.SENSOR_DELAY_NORMAL);
         }
+        Log.d(TAG, "Sensori in corpo registrati");
     }
 
     //////////////////////////////TROVARE I NODI VICINI/////////////////////////////////////////////
@@ -314,22 +314,21 @@ public class MainActivity extends Activity implements SensorEventListener {
         dataMap.getDataMap().putString("message", message);
         PutDataRequest request = dataMap.asPutDataRequest();
         request.setUrgent();
+        Log.d(TAG, "Prima dell'invio sulla rete: "+message);
 
         Task<DataItem> dataItemTask = Wearable.getDataClient(this).putDataItem(request);
         dataItemTask
                 .addOnSuccessListener(new OnSuccessListener<DataItem>() {
                     @Override
                     public void onSuccess(DataItem dataItem) {
-                        Log.d(TAG, "Sending message failed: " + dataItem + ", message: " + message);
-                        if(jsonArrayListFromFile.contains(message)){
-                            jsonArrayListFromFile.remove(message);
-                        }
+                        Log.d(TAG, "Message sended: " + dataItem + ", message: " + message);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Log.d(TAG, "Sending message failed: " + e);
+                        FileUtility.writeTracking(getApplicationContext(), message);
                     }
                 })
         ;
@@ -355,22 +354,19 @@ public class MainActivity extends Activity implements SensorEventListener {
                                 FileUtility.writeTracking(getApplicationContext(), json_current_tracking);
                                 Log.d(TAG, "Scritto in memoria: "+json_current_tracking);
 
+                                Log.d(TAG, "nodo connesso: "+manageTrackingNodeId);
                                 if (manageTrackingNodeId != null) {
-                                    jsonArrayListFromFile = FileUtility.readTrackings(getApplicationContext());
-                                    if(jsonArrayListFromFile !=null){
-                                        for(String str : jsonArrayListFromFile){
+                                    String[] jsonArrayFromFile = FileUtility.readTrackings(getApplicationContext());
+
+                                    if(jsonArrayFromFile != null){
+                                        for(String str : jsonArrayFromFile){
+                                            Log.d(TAG, "Invio dati file: "+str);
                                             sendData(str);
-                                            Log.d(TAG, "Invio dato in file: "+str);
                                         }
                                     }
                                 }
                             } catch (ExecutionException | InterruptedException e) {
                                 e.printStackTrace();
-                            }
-                            if (jsonArrayListFromFile.size() > 0) {
-                                for(String s : jsonArrayListFromFile){
-                                    FileUtility.writeTracking(getApplicationContext(), s);
-                                }
                             }
                         }
                     } finally {

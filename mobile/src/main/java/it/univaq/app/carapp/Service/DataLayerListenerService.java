@@ -78,20 +78,23 @@ public class DataLayerListenerService extends WearableListenerService {
         @Override
         public void onAvailable(@NonNull Network network) {
             super.onAvailable(network);
-            //String Url = "http://"+ RequestVolley.ID_HOST_CARAPP+"/carapp.php?action=query";
-            Float accX = trackingToManage.getAccelerometer()[0];
-            Float accY = trackingToManage.getAccelerometer()[1];
-            Float accZ = trackingToManage.getAccelerometer()[2];
-            String Url = "http://"+RequestVolley.ID_HOST_CARAPP+"/carapp.php?action=insert&deviceID="+trackingToManage.getDeviceID()+"&date="+trackingToManage.getDate()+"&bpm="+trackingToManage.getBpm()+"&o2InBlood="+trackingToManage.getO2inBlood()+"&accelerationX="+accX+"&accelerationY="+accY+"&accelerationZ="+accZ+"";
-            Log.v(DataLayerListenerService.TAG, "Url per insert"+ Url);
-            RequestVolley.getInstance(getApplicationContext()).doGetRequest(Url,
-                    new RequestVolley.OnCompleteCallback() {
-                        @Override
-                        public void onCompleted(String response) {
-                            Log.v(DataLayerListenerService.TAG, "Data on server");
-                            //SVUOTARE ANCHE MEMORIA ROOMDB
-                        }
-                    });
+
+            DB.getInstance(getApplicationContext()).getSessionDAO().insert(trackingToManage);
+            List<Tracking> listToWeb = DB.getInstance(getApplicationContext()).getSessionDAO().findAll();
+            for(Tracking t : listToWeb){
+                Float accX = t.getAccelerometer()[0];
+                Float accY = t.getAccelerometer()[1];
+                Float accZ = t.getAccelerometer()[2];
+                String Url = "http://"+RequestVolley.ID_HOST_CARAPP+"/carapp.php?action=insert&deviceID="+t.getDeviceID()+"&date="+t.getDate()+"&bpm="+t.getBpm()+"&o2InBlood="+t.getO2inBlood()+"&accelerationX="+accX+"&accelerationY="+accY+"&accelerationZ="+accZ+"";
+                RequestVolley.getInstance(getApplicationContext()).doGetRequest(Url,
+                        new RequestVolley.OnCompleteCallback() {
+                            @Override
+                            public void onCompleted(String response) {
+                                Log.v(DataLayerListenerService.TAG, "Data on server");
+                                DB.getInstance(getApplicationContext()).getSessionDAO().remove(t);
+                            }
+                        });
+            }
         }
 
         @Override

@@ -19,28 +19,17 @@ import java.util.Date;
 
 @Entity
 public class Tracking {
-    @Ignore
-    final static DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
 
     private String deviceID;
     @NonNull
     @PrimaryKey
     private String date;
     private Float bpm;
+    private Float O2inBlood;
     @TypeConverters
     private Float[] accelerometer;
-    private Float O2inBlood;
 
     public Tracking(){}
-
-    public Tracking(Context context) {
-        this.deviceID = Secure.getString(context.getContentResolver(),
-                Secure.ANDROID_ID);
-        this.date = null;
-        this.bpm = null;
-        this.accelerometer = null;
-        this.O2inBlood = null;
-    }
 
     @Override
     public String toString() {
