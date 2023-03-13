@@ -20,11 +20,14 @@ import java.util.Date;
 @Entity
 public class Tracking {
 
+    @NonNull
     private String deviceID;
     @NonNull
     @PrimaryKey
     private String date;
+    @Nullable
     private Float bpm;
+    @Nullable
     private Float O2inBlood;
     @TypeConverters
     private Float[] accelerometer;

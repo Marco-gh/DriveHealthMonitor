@@ -53,6 +53,12 @@ public class DataLayerListenerService extends WearableListenerService {
                     Gson gson = new Gson();
                     trackingToManage = gson.fromJson(message, Tracking.class);
 
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            DB.getInstance(getApplicationContext()).getSessionDAO().insert(trackingToManage);
+                        }
+                    }).start();
                     Log.e(TAG, "JsonFunge?: " + message);
 
                     //da memorizzare in un db in locale oppure mandarli on line
@@ -79,19 +85,38 @@ public class DataLayerListenerService extends WearableListenerService {
         public void onAvailable(@NonNull Network network) {
             super.onAvailable(network);
 
-            DB.getInstance(getApplicationContext()).getSessionDAO().insert(trackingToManage);
             List<Tracking> listToWeb = DB.getInstance(getApplicationContext()).getSessionDAO().findAll();
             for(Tracking t : listToWeb){
-                Float accX = t.getAccelerometer()[0];
-                Float accY = t.getAccelerometer()[1];
-                Float accZ = t.getAccelerometer()[2];
-                String Url = "http://"+RequestVolley.ID_HOST_CARAPP+"/carapp.php?action=insert&deviceID="+t.getDeviceID()+"&date="+t.getDate()+"&bpm="+t.getBpm()+"&o2InBlood="+t.getO2inBlood()+"&accelerationX="+accX+"&accelerationY="+accY+"&accelerationZ="+accZ+"";
+                Float trBPM = null;
+                Float trO2inBlood = null;
+                Float accX = null;
+                Float accY = null;
+                Float accZ = null;
+                if(t.getBpm()!=null){
+                    trBPM = t.getBpm();
+                }
+                if(t.getAccelerometer()!=null){
+                    accX = t.getAccelerometer()[0];
+                    accY = t.getAccelerometer()[1];
+                    accZ = t.getAccelerometer()[2];
+                }
+                if(t.getO2inBlood()!=null){
+                    trO2inBlood = t.getO2inBlood();
+                }
+
+                String Url = "http://"+RequestVolley.ID_HOST_CARAPP+"/carapp.php?action=insert&deviceID="+t.getDeviceID()+"&date="+t.getDate()+"&bpm="+trBPM+"&o2InBlood="+trO2inBlood+"&accelerationX="+accX+"&accelerationY="+accY+"&accelerationZ="+accZ+"";
+                Log.v(DataLayerListenerService.TAG, "url: "+Url);
                 RequestVolley.getInstance(getApplicationContext()).doGetRequest(Url,
                         new RequestVolley.OnCompleteCallback() {
                             @Override
                             public void onCompleted(String response) {
                                 Log.v(DataLayerListenerService.TAG, "Data on server");
-                                DB.getInstance(getApplicationContext()).getSessionDAO().remove(t);
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        DB.getInstance(getApplicationContext()).getSessionDAO().remove(t);
+                                    }
+                                }).start();
                             }
                         });
             }

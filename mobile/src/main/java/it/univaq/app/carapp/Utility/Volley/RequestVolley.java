@@ -18,7 +18,7 @@ public class RequestVolley {
         queue = Volley.newRequestQueue(context);
     }
     private volatile static RequestVolley instance = null;
-    public final static String ID_HOST_CARAPP = "192.168.1.74";
+    public final static String ID_HOST_CARAPP = "192.168.1.40";
 
     public synchronized static RequestVolley getInstance(Context context) {
         if(instance == null) {

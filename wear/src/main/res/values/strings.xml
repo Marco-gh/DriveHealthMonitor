@@ -4,14 +4,14 @@
     This string is used for square devices and overridden by hello_world in
     values-round/strings.xml for round devices.
     -->
-    <string name="hello_world">Hello Square World!</string>
-    <string name="stop">Stop</string>
-    <string name="start">Start</string>
-    <string name="textview">BPM</string>
-    <string name="x_axis">x-axis</string>
-    <string name="y_axis">y_axis</string>
-    <string name="z_axis">z_axis</string>
+    <string name="stop" translatable="false">Stop</string>
+    <string name="start" translatable="false">Start</string>
+    <string name="textview" translatable="false">BPM</string>
+    <string name="x_axis" translatable="false">X: -</string>
+    <string name="y_axis" translatable="false">Y: -</string>
+    <string name="z_axis" translatable="false">Z: -</string>
     <string name="o2inblood">O2InBlood</string>
-    <string name="Red_car">A red machine to signal whether activity is on going or not</string>
-    <string name="out_of_body">OUT OF BODY</string>
+    <string name="out_of_body" translatable="false">OUT OF BODY</string>
+    <string name="o2" translatable="false">O2: -</string>
+    <string name="BPM" translatable="false">BPM: -</string>
 </resources>

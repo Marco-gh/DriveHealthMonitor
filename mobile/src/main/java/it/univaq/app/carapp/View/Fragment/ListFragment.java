@@ -1,5 +1,6 @@
 package it.univaq.app.carapp.View.Fragment;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -19,6 +20,7 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -51,7 +53,6 @@ public class ListFragment extends Fragment {
         connectivityManager = (ConnectivityManager) requireContext().getSystemService(ConnectivityManager.class);
 
         connectivityManager.requestNetwork(networkRequest, networkCallback);
-
     }
 
     @Nullable
@@ -91,12 +92,19 @@ public class ListFragment extends Fragment {
                     @Override
                     public void onCompleted(String response) {
                         if(response!=null){
-                            //Log.v(DataLayerListenerService.TAG, "Data from web "+response);
                             try{
-                                JSONObject jsonObj = new JSONObject(response);
-                                for (int i = 0; i < jsonObj.names().length(); i++){
-                                    data.add(jsonObj.get(jsonObj.names().getString(i)).toString());
+                                Log.v(DataLayerListenerService.TAG, "Data list fragment: "+response);
+
+                                JSONArray jsonArray = new JSONArray(response);
+                                for (int i = 0; i < jsonArray.length(); i++){
+                                    data.add(jsonArray.get(i).toString());
                                 }
+
+                                /*JSONObject jsonObject = new JSONObject(response);
+                                for (int i = 0; i < jsonObject.length(); i++){
+                                    data.add(jsonObject.names().get(i).toString());
+                                }*/
+                                Log.v(DataLayerListenerService.TAG, "Data list fragment: "+data.toString());
                                 adapter.notifyDataSetChanged();
                             }catch (JSONException e){
                                 e.printStackTrace();

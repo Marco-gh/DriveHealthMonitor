@@ -1,8 +1,6 @@
 package it.univaq.app.carapp.Model;
 
-import java.sql.Time;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 import android.content.Context;
@@ -33,21 +31,6 @@ public class Tracking {
                 ", accelerometer=" + Arrays.toString(accelerometer) +
                 ", O2inBlood=" + O2inBlood +
                 '}';
-    }
-
-    public boolean hasValues(boolean thereIsO2Sensor){
-        if(deviceID!=null && bpm!=null && bpm!=0.0 && accelerometer!=null){
-            if(thereIsO2Sensor && O2inBlood!=null){
-                return true;
-            }
-            else if(thereIsO2Sensor && O2inBlood==null){
-                return false;
-            }
-            return true;
-        }
-        else{
-            return false;
-        }
     }
 
     public String getDeviceID() {

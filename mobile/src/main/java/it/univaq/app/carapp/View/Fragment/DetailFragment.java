@@ -1,5 +1,6 @@
 package it.univaq.app.carapp.View.Fragment;
 
+import android.app.AlertDialog;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -58,14 +59,6 @@ public class DetailFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        NetworkRequest networkRequest = new NetworkRequest.Builder()
-                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-                .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
-                .build();
-        connectivityManager = (ConnectivityManager) requireContext().getSystemService(ConnectivityManager.class);
-        connectivityManager.requestNetwork(networkRequest, networkCallback);
     }
 
     @Nullable
@@ -92,6 +85,14 @@ public class DetailFragment extends Fragment {
 
         if(getArguments() != null) {
             date = getArguments().getString(ListFragment.KEY_EXTRA_DATA);
+
+            NetworkRequest networkRequest = new NetworkRequest.Builder()
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                    .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+                    .build();
+            connectivityManager = (ConnectivityManager) requireContext().getSystemService(ConnectivityManager.class);
+            connectivityManager.requestNetwork(networkRequest, networkCallback);
         }
     }
 
@@ -100,7 +101,7 @@ public class DetailFragment extends Fragment {
         public void onAvailable(@NonNull Network network) {
             super.onAvailable(network);
 
-            String Url = "http://"+ RequestVolley.ID_HOST_CARAPP+"/carapp.php?action=query&all=true";
+            String Url = "http://"+ RequestVolley.ID_HOST_CARAPP+"/carapp.php?action=query&only_date="+date;
             RequestVolley.getInstance(getContext()).doGetRequest(Url,
                     new RequestVolley.OnCompleteCallback() {
                         @Override
@@ -112,19 +113,27 @@ public class DetailFragment extends Fragment {
                                     for (int i=0;i<jsonArray.length();i++){
 
                                         Tracking tracking = gson.fromJson(jsonArray.getJSONObject(i).toString(), Tracking.class);
-                                        tracking.setAccelerometer(new Float[]{Float.parseFloat(jsonArray.getJSONObject(i).get("accelerationX").toString()),
-                                                Float.parseFloat(jsonArray.getJSONObject(i).get("accelerationY").toString()),
-                                                Float.parseFloat(jsonArray.getJSONObject(i).get("accelerationZ").toString())});
-                                        String onlyDateTracking = tracking.getDate().split("T")[0];
+                                        Log.v(DataLayerListenerService.TAG, "accelerazioni DA INTERNET: "+ jsonArray.getJSONObject(i).get("accelerationX")+" "+jsonArray.getJSONObject(i).get("accelerationY")+" "+jsonArray.getJSONObject(i).get("accelerationZ"));
+                                        if(jsonArray.getJSONObject(i).get("accelerationX").toString()!="null" &&jsonArray.getJSONObject(i).get("accelerationY").toString()!="null" && jsonArray.getJSONObject(i).get("accelerationZ").toString()!="null"){
+                                            tracking.setAccelerometer(new Float[]{Float.parseFloat(jsonArray.getJSONObject(i).get("accelerationX").toString()),
+                                                    Float.parseFloat(jsonArray.getJSONObject(i).get("accelerationY").toString()),
+                                                    Float.parseFloat(jsonArray.getJSONObject(i).get("accelerationZ").toString())});
 
+                                        }
+
+                                        String onlyDateTracking = tracking.getDate().split("T")[0];
                                         if(Objects.equals(onlyDateTracking, date)){
                                             if(tracking.getO2inBlood() != null){
                                                 array_O2InBlood.add(tracking.getO2inBlood());
                                             }
-                                            array_bpm.add(tracking.getBpm());
-                                            array_accelerationX.add(tracking.getAccelerometer()[0]);
-                                            array_accelerationY.add(tracking.getAccelerometer()[1]);
-                                            array_accelerationZ.add(tracking.getAccelerometer()[2]);
+                                            if(tracking.getBpm() != null){
+                                                array_bpm.add(tracking.getBpm());
+                                            }
+                                            if(tracking.getAccelerometer() != null){
+                                                array_accelerationX.add(tracking.getAccelerometer()[0]);
+                                                array_accelerationY.add(tracking.getAccelerometer()[1]);
+                                                array_accelerationZ.add(tracking.getAccelerometer()[2]);
+                                            }
                                         }
                                     }
 
@@ -172,6 +181,14 @@ public class DetailFragment extends Fragment {
                                         Float[] average = {sum[0]/array_accelerationX.size(),sum[1]/array_accelerationX.size(),sum[2]/array_accelerationX.size()};
                                         textViewAverageAcceleration.setText(String.format("Average: %s / %s / %s", average[0], average[1], average[2]));
                                     }
+                                    Log.v(DataLayerListenerService.TAG, "response: "+ getArguments());
+                                }
+                                else{
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                                    builder.setMessage(R.string.communication_problems)
+                                            .setTitle(R.string.attention).setPositiveButton("OK",null);
+                                    AlertDialog dialog = builder.create();
+                                    dialog.show();
                                 }
                             }catch (JSONException e){
                                 e.printStackTrace();
