@@ -198,7 +198,6 @@ public class MainActivity extends Activity implements SensorEventListener {
 
         }
         else if (mSensorManager.getDefaultSensor(TYPE_lifeq_lel_spo2) != null && event.sensor.getType() == TYPE_lifeq_lel_spo2) {
-
             Float percentual_o2 = null;
             if (event.values[0] == 0.0 && event.values[1] != 0.0) {
                 percentual_o2 = event.values[1];
